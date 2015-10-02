@@ -6,17 +6,17 @@ Object.defineProperty(exports, '__esModule', {
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
+var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
+
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-function _slicedToArray(arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var _react = require('react');
 
@@ -35,6 +35,42 @@ var _sectionIterator = require('./sectionIterator');
 var _sectionIterator2 = _interopRequireDefault(_sectionIterator);
 
 var Autosuggest = (function (_Component) {
+  _inherits(Autosuggest, _Component);
+
+  _createClass(Autosuggest, null, [{
+    key: 'propTypes',
+    // eslint-disable-line no-shadow
+    value: {
+      suggestions: _react.PropTypes.func.isRequired, // Function to get the suggestions
+      suggestionRenderer: _react.PropTypes.func, // Function that renders a given suggestion (must be implemented when suggestions are objects)
+      suggestionValue: _react.PropTypes.func, // Function that maps suggestion object to input value (must be implemented when suggestions are objects)
+      showWhen: _react.PropTypes.func, // Function that determines whether to show suggestions or not
+      onSuggestionSelected: _react.PropTypes.func, // This function is called when suggestion is selected via mouse click or Enter
+      onSuggestionFocused: _react.PropTypes.func, // This function is called when suggestion is focused via mouse hover or Up/Down keys
+      onSuggestionUnfocused: _react.PropTypes.func, // This function is called when suggestion is unfocused via mouse hover or Up/Down keys
+      inputAttributes: _react.PropTypes.object, // Attributes to pass to the input field (e.g. { id: 'my-input', className: 'sweet autosuggest' })
+      id: _react.PropTypes.string, // Used in aria-* attributes. If multiple Autosuggest's are rendered on a page, they must have unique ids.
+      scrollBar: _react.PropTypes.bool, // Set it to true when the suggestions container can have a scroll bar
+      focusAfterSuggestionSelected: _react.PropTypes.bool // Set it to false to prevent input focus after selection
+    },
+    enumerable: true
+  }, {
+    key: 'defaultProps',
+    value: {
+      showWhen: function showWhen(input) {
+        return input.trim().length > 0;
+      },
+      onSuggestionSelected: function onSuggestionSelected() {},
+      onSuggestionFocused: function onSuggestionFocused() {},
+      onSuggestionUnfocused: function onSuggestionUnfocused() {},
+      inputAttributes: {},
+      id: '1',
+      scrollBar: false,
+      focusAfterSuggestionSelected: true
+    },
+    enumerable: true
+  }]);
+
   function Autosuggest(props) {
     _classCallCheck(this, Autosuggest);
 
@@ -64,8 +100,6 @@ var Autosuggest = (function (_Component) {
     this.onInputKeyDown = this.onInputKeyDown.bind(this);
     this.onInputBlur = this.onInputBlur.bind(this);
   }
-
-  _inherits(Autosuggest, _Component);
 
   _createClass(Autosuggest, [{
     key: 'resetSectionIterator',
@@ -419,7 +453,9 @@ var Autosuggest = (function (_Component) {
       }, function () {
         // This code executes after the component is re-rendered
         setTimeout(function () {
-          (0, _react.findDOMNode)(_this2.refs.input).focus();
+          if (_this2.props.focusAfterSuggestionSelected) {
+            (0, _react.findDOMNode)(_this2.refs.input).focus();
+          }
           _this2.justClickedOnSuggestion = false;
         });
       });
@@ -554,36 +590,6 @@ var Autosuggest = (function (_Component) {
         this.renderSuggestions()
       );
     }
-  }], [{
-    key: 'propTypes',
-    // eslint-disable-line no-shadow
-    value: {
-      suggestions: _react.PropTypes.func.isRequired, // Function to get the suggestions
-      suggestionRenderer: _react.PropTypes.func, // Function that renders a given suggestion (must be implemented when suggestions are objects)
-      suggestionValue: _react.PropTypes.func, // Function that maps suggestion object to input value (must be implemented when suggestions are objects)
-      showWhen: _react.PropTypes.func, // Function that determines whether to show suggestions or not
-      onSuggestionSelected: _react.PropTypes.func, // This function is called when suggestion is selected via mouse click or Enter
-      onSuggestionFocused: _react.PropTypes.func, // This function is called when suggestion is focused via mouse hover or Up/Down keys
-      onSuggestionUnfocused: _react.PropTypes.func, // This function is called when suggestion is unfocused via mouse hover or Up/Down keys
-      inputAttributes: _react.PropTypes.object, // Attributes to pass to the input field (e.g. { id: 'my-input', className: 'sweet autosuggest' })
-      id: _react.PropTypes.string, // Used in aria-* attributes. If multiple Autosuggest's are rendered on a page, they must have unique ids.
-      scrollBar: _react.PropTypes.bool // Should be set to true when the suggestions container can have a scroll bar
-    },
-    enumerable: true
-  }, {
-    key: 'defaultProps',
-    value: {
-      showWhen: function showWhen(input) {
-        return input.trim().length > 0;
-      },
-      onSuggestionSelected: function onSuggestionSelected() {},
-      onSuggestionFocused: function onSuggestionFocused() {},
-      onSuggestionUnfocused: function onSuggestionUnfocused() {},
-      inputAttributes: {},
-      id: '1',
-      scrollBar: false
-    },
-    enumerable: true
   }]);
 
   return Autosuggest;

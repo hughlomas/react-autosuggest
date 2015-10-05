@@ -49,15 +49,10 @@ var Autosuggest = (function (_Component) {
       onSuggestionFocused: _react.PropTypes.func, // This function is called when suggestion is focused via mouse hover or Up/Down keys
       onSuggestionUnfocused: _react.PropTypes.func, // This function is called when suggestion is unfocused via mouse hover or Up/Down keys
       inputAttributes: _react.PropTypes.object, // Attributes to pass to the input field (e.g. { id: 'my-input', className: 'sweet autosuggest' })
-<<<<<<< HEAD
+      cache: _react.PropTypes.bool, // Set it to false to disable in-memory caching
       id: _react.PropTypes.string, // Used in aria-* attributes. If multiple Autosuggest's are rendered on a page, they must have unique ids.
       scrollBar: _react.PropTypes.bool, // Set it to true when the suggestions container can have a scroll bar
       focusAfterSuggestionSelected: _react.PropTypes.bool // Set it to false to prevent input focus after selection
-=======
-      cache: _react.PropTypes.bool, // Set it to false to disable in-memory caching
-      id: _react.PropTypes.string, // Used in aria-* attributes. If multiple Autosuggest's are rendered on a page, they must have unique ids.
-      scrollBar: _react.PropTypes.bool // Set it to true when the suggestions container can have a scroll bar
->>>>>>> tags/v1.18.3
     },
     enumerable: true
   }, {
@@ -70,15 +65,10 @@ var Autosuggest = (function (_Component) {
       onSuggestionFocused: function onSuggestionFocused() {},
       onSuggestionUnfocused: function onSuggestionUnfocused() {},
       inputAttributes: {},
-<<<<<<< HEAD
+      cache: true,
       id: '1',
       scrollBar: false,
       focusAfterSuggestionSelected: true
-=======
-      cache: true,
-      id: '1',
-      scrollBar: false
->>>>>>> tags/v1.18.3
     },
     enumerable: true
   }]);

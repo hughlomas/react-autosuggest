@@ -1,5 +1,3 @@
-'use strict';
-
 import proxyquire from 'proxyquire';
 import chai, { expect } from 'chai';
 import sinon from 'sinon';
@@ -9,7 +7,7 @@ import SyntheticEvent from 'react/lib/SyntheticEvent';
 
 chai.use(sinonChai);
 
-const Autosuggest = proxyquire('../Autosuggest', { debounce: fn => fn });
+const Autosuggest = proxyquire('../src/Autosuggest', { debounce: fn => fn });
 const TestUtils = React.addons.TestUtils;
 const Simulate = TestUtils.Simulate;
 const SimulateNative = TestUtils.SimulateNative;
@@ -120,6 +118,10 @@ function mouseOverBetweenSuggestions(suggestionIndex1, suggestionIndex2) {
 
 function clickOutside() {
   Simulate.blur(input);
+}
+
+function focusOnInput() {
+  Simulate.focus(input);
 }
 
 function clickEscape() {
@@ -247,6 +249,7 @@ describe('Autosuggest', () => {
                                           name: 'my-autosuggest-name',
                                           placeholder: 'Enter location...',
                                           className: 'my-sweet-autosuggest',
+                                          type: 'search',
                                           value: 'my value' }} />
         );
       });
@@ -254,6 +257,7 @@ describe('Autosuggest', () => {
       it('should set input attributes', () => {
         expect(input.id).to.equal('my-autosuggest');
         expect(input.name).to.equal('my-autosuggest-name');
+        expect(input.type).to.equal('search');
         expect(input.getAttribute('placeholder')).to.equal('Enter location...');
         expect(input.className).to.equal('my-sweet-autosuggest');
       });
@@ -281,7 +285,7 @@ describe('Autosuggest', () => {
         expectSuggestions(['Nunawading']);
       });
 
-      it('should show not suggestions when no matches exist', () => {
+      it('should not show suggestions when no matches exist', () => {
         setInputValue('a');
         expectSuggestions([]);
       });
@@ -298,6 +302,14 @@ describe('Autosuggest', () => {
         clickEscape();
         expectInputValue('');
       });
+
+      it('should show suggestions when when input is focussed', () => {
+        setInputValue('m');
+        clickOutside();
+        expectSuggestions([]);
+        focusOnInput();
+        expectSuggestions(['Mill Park', 'Mordialloc']);
+      });
     });
 
     describe('with object suggestions', () => {
@@ -307,6 +319,10 @@ describe('Autosuggest', () => {
                        suggestionRenderer={renderSuburbObject}
                        suggestionValue={getSuburbObjectValue} />
         );
+      });
+
+      it('should set type to "text" by default', () => {
+        expect(input.type).to.equal('text');
       });
 
       it('should show suggestions when matches exist', () => {
@@ -734,7 +750,7 @@ describe('Autosuggest', () => {
         expect(onChange).to.have.been.calledWith('');
       });
 
-      it('suggestion is clicked', () => {
+      it('suggestion which differs from input\'s value is clicked', () => {
         onChange.reset();
         mouseDownSuggestion(0);
         expect(onChange).to.have.been.calledWith('Mill Park');
@@ -754,6 +770,28 @@ describe('Autosuggest', () => {
         clickEscape();
         expect(onChange).not.to.have.been.called;
       });
+
+      it('input is set with the same value', () => {
+        onChange.reset();
+        setInputValue('m');
+        expect(onChange).not.to.have.been.called;
+      });
+
+      it('suggestion that is equal to input\'s value is focussed via keyboard', () => {
+        setInputValue('Mill Park');
+        clickDown();
+        onChange.reset();
+        clickDown();
+        expect(onChange).not.to.have.been.called;
+      });
+
+      it('suggestion that is equal to input\'s value is clicked', () => {
+        setInputValue('Mill Park');
+        clickDown();
+        onChange.reset();
+        mouseDownSuggestion(0);
+        expect(onChange).not.to.have.been.called;
+      });
     });
   });
 
@@ -769,7 +807,7 @@ describe('Autosuggest', () => {
     describe('should be called when', () => {
       it('input is blurred', () => {
         clickOutside();
-        expect(onBlur).to.have.been.called;
+        expect(onBlur).to.have.been.calledWith(sinon.match.instanceOf(SyntheticEvent));
       });
     });
 
@@ -992,7 +1030,7 @@ describe('Autosuggest', () => {
   });
 
   describe('(delayed requests)', () => {
-    it('should set suggestions', (done) => {
+    it('should set suggestions', done => {
       function getDelayedSuburbStrings(input, callback) {
         switch (input) {
           case 'r':
@@ -1014,7 +1052,7 @@ describe('Autosuggest', () => {
       }, 51);
     });
 
-    it('should ignore delayed request', (done) => {
+    it('should ignore delayed request', done => {
       function getDelayedSuburbStrings(input, callback) {
         switch (input) {
           case 'r':
@@ -1036,7 +1074,7 @@ describe('Autosuggest', () => {
       }, 51);
     });
 
-    it('should ignore request if input is empty', (done) => {
+    it('should ignore request if input is empty', done => {
       function getDelayedSuburbStrings(input, callback) {
         setTimeout(() => { callback(null, ['Raglan', 'Riachella', 'Richmond']); }, 50);
       }
@@ -1052,26 +1090,52 @@ describe('Autosuggest', () => {
     });
   });
 
-  describe('(caching)', () => {
-    beforeEach(() => {
-      createAutosuggest(<Autosuggest suggestions={getSuburbs} />);
-      setInputValue('m');
-      getSuburbs.reset();
-    });
-
-    describe('should not call suggestions function if', () => {
-      it('it was called before with the same input', () => {
-        setInputValue('mi');
-        getSuburbs.reset();
+  describe('with caching', () => {
+    describe('enabled', () => {
+      beforeEach(() => {
+        createAutosuggest(<Autosuggest suggestions={getSuburbs} />);
         setInputValue('m');
-        expect(getSuburbs).not.to.have.been.called;
+        getSuburbs.reset();
       });
 
-      it('it was called before with the same case insensitive input', () => {
-        setInputValue('mi');
+      describe('should not call suggestions function if', () => {
+        it('it was called before with the same input', () => {
+          setInputValue('mi');
+          getSuburbs.reset();
+          setInputValue('m');
+          expect(getSuburbs).not.to.have.been.called;
+        });
+
+        it('it was called before with the same case insensitive input', () => {
+          setInputValue('mi');
+          getSuburbs.reset();
+          setInputValue('M');
+          expect(getSuburbs).not.to.have.been.called;
+        });
+      });
+    });
+
+    describe('disabled', () => {
+      beforeEach(() => {
+        createAutosuggest(<Autosuggest cache={false} suggestions={getSuburbs} />);
+        setInputValue('m');
         getSuburbs.reset();
-        setInputValue('M');
-        expect(getSuburbs).not.to.have.been.called;
+      });
+
+      describe('should call suggestions function if', () => {
+        it('it was called before with the same input', () => {
+          setInputValue('mi');
+          getSuburbs.reset();
+          setInputValue('m');
+          expect(getSuburbs).to.have.been.called;
+        });
+
+        it('it was called before with the same case insensitive input', () => {
+          setInputValue('mi');
+          getSuburbs.reset();
+          setInputValue('M');
+          expect(getSuburbs).to.have.been.called;
+        });
       });
     });
   });
